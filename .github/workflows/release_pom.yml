@@ -11,64 +11,71 @@ on:
         required: true
 
 jobs:
-  release:
+  prepare-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
         with:
-          distribution: 'corretto'
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
           java-version: '21'
-          cache: 'maven'
+          distribution: 'corretto'
 
-      - name: Configure Git user
+      - name: Prepare Next Version
+        id: prepare-version
         run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
+          # Ensure next version ends with -SNAPSHOT
+          NEXT_VERSION=${{ github.event.inputs.next-version }}
+          if [[ ! $NEXT_VERSION == *-SNAPSHOT ]]; then
+            NEXT_VERSION="${NEXT_VERSION}-SNAPSHOT"
+          fi
+          echo "next-version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Create release branch
+      - name: Set Release Version
         run: |
-          git checkout -b release-${{ github.event.inputs.version }}
+          mvn versions:set -DnewVersion=${{ github.event.inputs.release-version }}
+          mvn versions:commit
 
-      - name: Update version for release
-        run: |
-          mvn versions:set -DnewVersion=${{ github.event.inputs.version }} -DgenerateBackupPoms=false
-          git add pom.xml
-          git commit -m "Release version ${{ github.event.inputs.version }}"
-
-      - name: Build and verify
+      - name: Verify Build
         run: mvn clean verify
 
-      - name: Create tag
+      - name: Create Git Tag
         run: |
-          git tag -a v${{ github.event.inputs.version }} -m "Release version ${{ github.event.inputs.version }}"
-
-      - name: Update to next development version
-        run: |
-          mvn versions:set -DnewVersion=${{ github.event.inputs.next-version }} -DgenerateBackupPoms=false
+          git config user.name "GitHub Actions"
+          git config user.email "<actions@github.com>"
           git add pom.xml
-          git commit -m "Prepare for next development version ${{ github.event.inputs.next-version }}"
+          git commit -m "Release version ${{ github.event.inputs.release-version }}"
+          git tag -a v${{ github.event.inputs.release-version }} -m "Release version ${{ github.event.inputs.release-version }}"
 
-      - name: Push release branch and tag
+      - name: Set Next Snapshot Version
         run: |
-          git push --set-upstream origin release-${{ github.event.inputs.version }}
-          git push --tags
+          mvn versions:set -DnewVersion=${{ steps.prepare-version.outputs.next-version }}
+          mvn versions:commit
+
+      - name: Commit Next Snapshot Version
+        run: |
+          git add pom.xml
+          git commit -m "Prepare next development version ${{ steps.prepare-version.outputs.next-version }}"
+
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Prepare release ${{ github.event.inputs.release-version }}
+          branch: release/v${{ github.event.inputs.release-version }}
+          delete-branch: true
           base: main
-          branch: release-${{ github.event.inputs.version }}
-          title: "Release version ${{ github.event.inputs.version }}"
+          title: Release ${{ github.event.inputs.release-version }}
           body: |
-            This PR:
-            1. Updates version to ${{ github.event.inputs.version }}
-            2. Tags this release as v${{ github.event.inputs.version }}
-            3. Prepares for next development version ${{ github.event.inputs.next-version }}
+            ## Release Preparation
             
-            Please review and merge to complete the release process.
-          labels: release
+            - Release version: ${{ github.event.inputs.release-version }}
+            - Next development version: ${{ steps.prepare-version.outputs.next-version }}
