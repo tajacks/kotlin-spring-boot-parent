@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <name>kotlin-springboot-parent</name>
-    <description>Spring Boot and Kotlin parent POM without Spring Boot parent inheritance</description>
+    <description>Spring Boot and Kotlin parent POM without Spring Boot parent inheritance.</description>
 
     <developers>
         <developer>
