@@ -54,7 +54,9 @@ jobs:
           git add pom.xml
           git commit -m "Release version ${{ github.event.inputs.release-version }}"
           git tag -a v${{ github.event.inputs.release-version }} -m "Release version ${{ github.event.inputs.release-version }}"
-
+          git push origin HEAD:release/v${{ github.event.inputs.release-version }}
+          git push origin v${{ github.event.inputs.release-version }}
+          
       - name: Set Next Snapshot Version
         run: |
           mvn versions:set -DnewVersion=${{ steps.prepare-version.outputs.next-version }}
@@ -64,7 +66,7 @@ jobs:
         run: |
           git add pom.xml
           git commit -m "Prepare next development version ${{ steps.prepare-version.outputs.next-version }}"
-
+          git push origin HEAD:release/v${{ github.event.inputs.release-version }}
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
