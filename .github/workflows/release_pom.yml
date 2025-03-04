@@ -29,6 +29,10 @@ jobs:
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
 
+      - name: Create release branch
+        run: |
+          git checkout -b release-${{ github.event.inputs.version }}
+
       - name: Update version for release
         run: |
           mvn versions:set -DnewVersion=${{ github.event.inputs.version }} -DgenerateBackupPoms=false
@@ -48,7 +52,23 @@ jobs:
           git add pom.xml
           git commit -m "Prepare for next development version ${{ github.event.inputs.next-version }}"
 
-      - name: Push changes and tag
+      - name: Push release branch and tag
         run: |
-          git push
+          git push --set-upstream origin release-${{ github.event.inputs.version }}
           git push --tags
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          branch: release-${{ github.event.inputs.version }}
+          title: "Release version ${{ github.event.inputs.version }}"
+          body: |
+            This PR:
+            1. Updates version to ${{ github.event.inputs.version }}
+            2. Tags this release as v${{ github.event.inputs.version }}
+            3. Prepares for next development version ${{ github.event.inputs.next-version }}
+            
+            Please review and merge to complete the release process.
+          labels: release
