@@ -3,7 +3,7 @@ name: Release Parent POM
 on:
   workflow_dispatch:
     inputs:
-      version:
+      release-version:
         description: 'Version to release (e.g., 1.0.0)'
         required: true
       next-version:
