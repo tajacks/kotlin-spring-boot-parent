@@ -1,0 +1,54 @@
+name: Release Parent POM
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+      next-version:
+        description: 'Next development version (e.g., 1.0.1-SNAPSHOT)'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Configure Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Update version for release
+        run: |
+          mvn versions:set -DnewVersion=${{ github.event.inputs.version }} -DgenerateBackupPoms=false
+          git add pom.xml
+          git commit -m "Release version ${{ github.event.inputs.version }}"
+
+      - name: Build and verify
+        run: mvn clean verify
+
+      - name: Create tag
+        run: |
+          git tag -a v${{ github.event.inputs.version }} -m "Release version ${{ github.event.inputs.version }}"
+
+      - name: Update to next development version
+        run: |
+          mvn versions:set -DnewVersion=${{ github.event.inputs.next-version }} -DgenerateBackupPoms=false
+          git add pom.xml
+          git commit -m "Prepare for next development version ${{ github.event.inputs.next-version }}"
+
+      - name: Push changes and tag
+        run: |
+          git push
+          git push --tags
