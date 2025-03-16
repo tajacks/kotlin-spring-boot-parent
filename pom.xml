@@ -28,6 +28,7 @@
         <kotlin.version>2.1.0</kotlin.version>
         <kotlinx-coroutines.version>1.10.1</kotlinx-coroutines.version>
         <spring-boot.version>3.4.3</spring-boot.version>
+        <ktor.version>3.1.1</ktor.version>
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -35,6 +36,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- SpringBoot -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -42,6 +44,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Kotlin & Coroutines -->
             <dependency>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-bom</artifactId>
@@ -56,11 +59,43 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Logging -->
             <dependency>
                 <groupId>io.klogging</groupId>
                 <artifactId>klogging-spring-boot-starter</artifactId>
                 <version>0.9.3</version>
                 <type>pom</type>
+            </dependency>
+            <!-- Ktor Client (REST, etc.) -->
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-client-core-jvm</artifactId>
+                <version>${ktor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-client-java-jvm</artifactId>
+                <version>${ktor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-client-logging-jvm</artifactId>
+                <version>${ktor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-client-content-negotiation-jvm</artifactId>
+                <version>${ktor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-client-auth-jvm</artifactId>
+                <version>${ktor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-serialization-kotlinx-json-jvm</artifactId>
+                <version>${ktor.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -140,6 +175,7 @@
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
+                        <plugin>kotlinx-serialization</plugin>
                     </compilerPlugins>
                     <jvmTarget>${java.version}</jvmTarget>
                 </configuration>
@@ -147,6 +183,11 @@
                     <dependency>
                         <groupId>org.jetbrains.kotlin</groupId>
                         <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-serialization</artifactId>
                         <version>${kotlin.version}</version>
                     </dependency>
                 </dependencies>
