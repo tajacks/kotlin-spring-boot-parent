@@ -6,7 +6,7 @@
 
     <groupId>dev.tomjack</groupId>
     <artifactId>kotlin-springboot-parent</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>kotlin-springboot-parent</name>
