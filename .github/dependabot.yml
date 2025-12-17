@@ -1,12 +1,10 @@
 version: 2
 updates:
+  # Enable version updates for Maven packages
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
       interval: "daily"
-    reviewers:
-      - "tajacks"
-    labels:
-      - "dependencies"
-      - "maven"
-    versioning-strategy: auto
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "Update"
